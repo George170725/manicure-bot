@@ -1328,34 +1328,56 @@ async def manage_blocked_slots(update: Update, context: ContextTypes.DEFAULT_TYP
 async def handle_blocked_slots_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
+    # 🚫 Блокировка целого дня
     if query.data == "block_day":
-        await query.edit_message_text("Выберите дату для блокировки:", reply_markup=create_admin_dates_keyboard())
+        await query.message.reply_text(
+            "Выберите дату для блокировки:",
+            reply_markup=create_admin_dates_keyboard()
+        )
         context.user_data["blocking_day"] = True
         return
+
+    # 🚫 Блокировка конкретного времени
     if query.data == "block_time":
-        await query.edit_message_text("Выберите дату для блокировки времени:", reply_markup=create_admin_dates_keyboard())
+        await query.message.reply_text(
+            "Выберите дату для блокировки времени:",
+            reply_markup=create_admin_dates_keyboard()
+        )
         context.user_data["blocking_time"] = True
         return
+
+    # 📋 Показать список всех заблокированных слотов
     if query.data == "show_blocked":
         blocked_slots = get_blocked_slots()
         if not blocked_slots:
-            await query.edit_message_text("Нет заблокированных слотов.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Назад", callback_data="admin_back")]]))
+            await query.edit_message_text(
+                "Нет заблокированных слотов.",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("🔙 Назад", callback_data="admin_back")]]
+                ),
+            )
             return
+
         message = "🚫 **ЗАБЛОКИРОВАННЫЕ СЛОТЫ:**\n\n"
         for slot in blocked_slots:
-            if slot[3]:
+            if slot[3]:  # is_all_day
                 message += f"📅 **{slot[1]}** - весь день"
             else:
                 message += f"📅 **{slot[1]} {slot[2]}**"
             if slot[4]:
                 message += f" - {slot[4]}"
             message += f"\n🆔 #{slot[0]}\n\n"
+
         keyboard = []
         for slot in blocked_slots:
-            keyboard.append([InlineKeyboardButton(f"❌ Удалить {slot[1]}" + (f" {slot[2]}" if slot[2] else ""), callback_data=f"remove_blocked_{slot[0]}")])
+            button_text = f"❌ Удалить {slot[1]}" + (f" {slot[2]}" if slot[2] else "")
+            keyboard.append([InlineKeyboardButton(button_text, callback_data=f"remove_blocked_{slot[0]}")])
         keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data="admin_back")])
+
         await query.edit_message_text(message, reply_markup=InlineKeyboardMarkup(keyboard))
         return
+
 
 
 async def handle_blocked_date_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
