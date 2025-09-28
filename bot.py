@@ -1454,98 +1454,56 @@ async def handle_dates_router(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 # ------------------ Основная функция (регистрация хендлеров) ------------------
+import os
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    CallbackQueryHandler,
+    filters,
+)
+
 def main():
     init_database()
     application = Application.builder().token(BOT_TOKEN).build()
 
-    # команды
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("admin", admin_command))
-
-    # booking conversation
-    booking_handler = ConversationHandler(
-        entry_points=[MessageHandler(filters.Regex("^📅 Записаться на маникюр$"), start_booking)],
-        states={
-            SELECT_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, select_date)],
-            SELECT_TIME: [MessageHandler(filters.TEXT & ~filters.COMMAND, select_time)],
-            ENTER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, enter_name)],
-            ENTER_PHONE: [MessageHandler(filters.TEXT | filters.CONTACT, enter_phone)],
-        },
-        fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
-    )
+    # === Конверсейшены ===
     application.add_handler(booking_handler)
-
-    # Клиент: показать мои записи
-    application.add_handler(MessageHandler(filters.Regex("^📋 Мои записи$"), show_my_appointments))
-
-    # Клиентская отмена — колбэки
-    application.add_handler(CallbackQueryHandler(client_cancel_appointment, pattern="^client_cancel_"))
-    application.add_handler(CallbackQueryHandler(confirm_cancellation, pattern="^confirm_cancel_"))
-
-    # Conversation: клиент -> мастер (через кнопку)
-    client_to_admin_conv = ConversationHandler(
-        entry_points=[
-            MessageHandler(filters.Regex("^✉️ Написать мастеру$"), start_client_to_admin_message),
-            CallbackQueryHandler(start_client_to_admin_message, pattern="^client_to_admin_message$"),
-        ],
-        states={CLIENT_TO_ADMIN_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_client_to_admin_message)]},
-        fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
-        allow_reentry=True,
-    )
-    application.add_handler(client_to_admin_conv)
-
-    # Conversation: админ -> клиент (через callback)
-    admin_to_client_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(start_admin_to_client_message, pattern="^(admin_reply_|admin_message_)")],
-        states={ADMIN_TO_CLIENT_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_to_client_message)]},
-        fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), admin_command)],
-        allow_reentry=True,
-    )
-    application.add_handler(admin_to_client_conv)
-
-    # Admin broadcasts and search
-    broadcast_conv = ConversationHandler(
-        entry_points=[MessageHandler(filters.Regex("^📢 Сделать рассылку$"), start_broadcast)],
-        states={BROADCAST_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_broadcast_message)]},
-        fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), admin_command)],
-        allow_reentry=True,
-    )
-    application.add_handler(broadcast_conv)
-
-    search_phone_conv = ConversationHandler(
-        entry_points=[MessageHandler(filters.Regex("^🔍 Поиск по телефону$"), search_by_phone)],
-        states={ADMIN_SEARCH_CLIENT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_search)]},
-        fallbacks=[MessageHandler(filters.Regex("^🔙 Назад в админку$"), admin_command)],
-        allow_reentry=True,
-    )
+    application.add_handler(broadcast_handler)
     application.add_handler(search_phone_conv)
 
-    # Admin actions via messages
+    # === Действия админа через сообщения ===
     application.add_handler(MessageHandler(filters.Regex("^📋 Все записи$"), show_all_appointments))
     application.add_handler(MessageHandler(filters.Regex("^📅 Записи на сегодня$"), show_today_appointments))
     application.add_handler(MessageHandler(filters.Regex("^🗓️ Записи по дате$"), show_appointments_by_date))
     application.add_handler(MessageHandler(filters.Regex("^✉️ Сообщения от клиентов$"), show_client_messages))
     application.add_handler(MessageHandler(filters.Regex("^🚫 Управление выходными$"), manage_blocked_slots))
 
-    # Dates router (admin date selection OR blocking)
+    # === Выбор даты (админ или блокировка) ===
     application.add_handler(MessageHandler(filters.Regex("^📅 "), handle_dates_router))
 
-    # Time blocking (admin) - pattern for HH:MM
+    # === Блокировка времени (HH:MM) ===
     application.add_handler(MessageHandler(filters.Regex(r"^\d{2}:\d{2}$"), handle_time_blocking))
 
-    # Blocked slots callbacks
+    # === Callback-и для блокировок ===
     application.add_handler(CallbackQueryHandler(handle_blocked_slots_callback, pattern="^(block_day|block_time|show_blocked)$"))
     application.add_handler(CallbackQueryHandler(remove_blocked_slot_callback, pattern="^remove_blocked_"))
 
-    # General admin callback handler (после более специфичных)
+    # === Общий обработчик админских кнопок (ставим после специфичных) ===
     application.add_handler(CallbackQueryHandler(handle_admin_callback))
 
-    # Scheduled jobs (reminders, expire payments) - optional: enable if using job queue
-    # application.job_queue.run_repeating(send_reminders, interval=60*60*24, first=10)
-    # application.job_queue.run_repeating(check_expired_payments, interval=60, first=10)
+    # === Запуск через webhook ===
+    PORT = int(os.getenv("PORT", 10000))
+    APP_NAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 
-    print("🚀 Бот запущен...")
-    application.run_polling()
+    print("🚀 Бот запущен через Webhook...")
+
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=BOT_TOKEN,
+        webhook_url=f"https://{APP_NAME}/{BOT_TOKEN}",
+    )
 
 
 if __name__ == "__main__":
