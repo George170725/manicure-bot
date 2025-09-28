@@ -1454,15 +1454,55 @@ async def handle_dates_router(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 # ------------------ Основная функция (регистрация хендлеров) ------------------
-import os
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    CallbackQueryHandler,
-    filters,
+# ------------------ Запись клиента ------------------
+booking_handler = ConversationHandler(
+    entry_points=[
+        MessageHandler(filters.Regex("^📅 Записаться на маникюр$"), start_booking)
+    ],
+    states={
+        SELECT_DATE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, select_date)
+        ],
+        SELECT_TIME: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, select_time)
+        ],
+        ENTER_NAME: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, enter_name)
+        ],
+        ENTER_PHONE: [
+            MessageHandler(filters.TEXT | filters.CONTACT, enter_phone)
+        ],
+    },
+    fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
 )
 
+# ------------------ Рассылка ------------------
+broadcast_handler = ConversationHandler(
+    entry_points=[
+        MessageHandler(filters.Regex("^📢 Сделать рассылку$"), start_broadcast)
+    ],
+    states={
+        BROADCAST_MESSAGE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_broadcast_message)
+        ],
+    },
+    fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
+)
+
+# ------------------ Поиск по номеру телефона ------------------
+search_phone_conv = ConversationHandler(
+    entry_points=[
+        MessageHandler(filters.Regex("^🔍 Поиск по номеру$"), search_by_phone)
+    ],
+    states={
+        SEARCH_PHONE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_search)
+        ],
+    },
+    fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
+)
+
+# ------------------ Основная функция ------------------
 def main():
     init_database()
     application = Application.builder().token(BOT_TOKEN).build()
@@ -1489,7 +1529,7 @@ def main():
     application.add_handler(CallbackQueryHandler(handle_blocked_slots_callback, pattern="^(block_day|block_time|show_blocked)$"))
     application.add_handler(CallbackQueryHandler(remove_blocked_slot_callback, pattern="^remove_blocked_"))
 
-    # === Общий обработчик админских кнопок (ставим после специфичных) ===
+    # === Общий обработчик админских кнопок (после специфичных) ===
     application.add_handler(CallbackQueryHandler(handle_admin_callback))
 
     # === Запуск через webhook ===
