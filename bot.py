@@ -1486,7 +1486,7 @@ broadcast_handler = ConversationHandler(
 # --- Поиск по номеру телефона ---
 search_phone_conv = ConversationHandler(
     entry_points=[
-        MessageHandler(filters.Regex("^🔍 Поиск по номеру$"), search_by_phone)
+        MessageHandler(filters.Regex("^🔍 Поиск по телефону$"), search_by_phone)
     ],
     states={
         SEARCH_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_phone_search)],
