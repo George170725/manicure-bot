@@ -1500,6 +1500,8 @@ async def handle_dates_router(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 # ------------------ Все ConversationHandler ------------------
 
+
+
 # ------------------ Запись клиента ------------------
 booking_handler = ConversationHandler(
     entry_points=[
@@ -1548,7 +1550,7 @@ search_phone_conv = ConversationHandler(
     fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
 )
 
-# ------------------ Клиент пишет мастеру (ConversationHandler) ------------------
+# ------------------ Клиент пишет мастеру ------------------
 client_to_admin_conv = ConversationHandler(
     entry_points=[
         MessageHandler(filters.Regex("^✉️ Написать мастеру$"), send_message_to_master)
@@ -1556,14 +1558,10 @@ client_to_admin_conv = ConversationHandler(
     states={
         CLIENT_MESSAGE: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, handle_client_message)
-        ],
+        ]
     },
-    fallbacks=[
-        MessageHandler(filters.Regex("^❌ Отмена$"), start_command)
-    ],
+    fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
 )
-
-
 
 # ------------------ Админ пишет клиенту (инициатива) ------------------
 admin_to_client_conv = ConversationHandler(
@@ -1577,7 +1575,6 @@ admin_to_client_conv = ConversationHandler(
     },
     fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), admin_command)],
 )
-
 
 
 
