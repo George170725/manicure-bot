@@ -1510,31 +1510,33 @@ def main():
 
     # === Команды ===
     application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("admin", admin_command))
+
+    # === Клиентские кнопки ===
+    application.add_handler(MessageHandler(filters.Regex("^📅 Записаться на маникюр$"), start_booking))
+    application.add_handler(MessageHandler(filters.Regex("^📋 Мои записи$"), show_my_appointments))
+    application.add_handler(MessageHandler(filters.Regex("^✍️ Написать мастеру$"), send_message_to_master))
 
     # === Конверсейшены ===
-    application.add_handler(booking_handler)
-    application.add_handler(broadcast_handler)
-    application.add_handler(search_phone_conv)
+    application.add_handler(booking_handler)       # запись на маникюр
+    application.add_handler(broadcast_handler)     # рассылка
+    application.add_handler(search_phone_conv)     # поиск по номеру телефона
 
-    # === Действия админа через сообщения ===
+    # === Админские кнопки ===
     application.add_handler(MessageHandler(filters.Regex("^📋 Все записи$"), show_all_appointments))
     application.add_handler(MessageHandler(filters.Regex("^📅 Записи на сегодня$"), show_today_appointments))
     application.add_handler(MessageHandler(filters.Regex("^🗓️ Записи по дате$"), show_appointments_by_date))
     application.add_handler(MessageHandler(filters.Regex("^✉️ Сообщения от клиентов$"), show_client_messages))
     application.add_handler(MessageHandler(filters.Regex("^🚫 Управление выходными$"), manage_blocked_slots))
 
-    # === Выбор даты (админ или блокировка) ===
+    # === Выбор даты и времени (админ) ===
     application.add_handler(MessageHandler(filters.Regex("^📅 "), handle_dates_router))
-
-    # === Блокировка времени (HH:MM) ===
     application.add_handler(MessageHandler(filters.Regex(r"^\d{2}:\d{2}$"), handle_time_blocking))
 
-    # === Callback-и для блокировок ===
+    # === Callback-и ===
     application.add_handler(CallbackQueryHandler(handle_blocked_slots_callback, pattern="^(block_day|block_time|show_blocked)$"))
     application.add_handler(CallbackQueryHandler(remove_blocked_slot_callback, pattern="^remove_blocked_"))
-
-    # === Общий обработчик админских кнопок (после специфичных) ===
-    application.add_handler(CallbackQueryHandler(handle_admin_callback))
+    application.add_handler(CallbackQueryHandler(handle_admin_callback))  # общий обработчик
 
     # === Запуск через webhook ===
     PORT = int(os.getenv("PORT", 10000))
