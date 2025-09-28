@@ -1500,27 +1500,37 @@ async def handle_dates_router(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 # ------------------ Все ConversationHandler ------------------
 
-# --- Запись клиента ---
+# ------------------ Запись клиента ------------------
 booking_handler = ConversationHandler(
     entry_points=[
         MessageHandler(filters.Regex("^📅 Записаться на маникюр$"), start_booking)
     ],
     states={
-        SELECT_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, select_date)],
-        SELECT_TIME: [MessageHandler(filters.TEXT & ~filters.COMMAND, select_time)],
-        ENTER_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, enter_name)],
-        ENTER_PHONE: [MessageHandler(filters.TEXT | filters.CONTACT, enter_phone)],
+        SELECT_DATE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, select_date)
+        ],
+        SELECT_TIME: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, select_time)
+        ],
+        ENTER_NAME: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, enter_name)
+        ],
+        ENTER_PHONE: [
+            MessageHandler(filters.TEXT | filters.CONTACT, enter_phone)
+        ],
     },
     fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
 )
 
-# --- Рассылка ---
+# ------------------ Рассылка ------------------
 broadcast_handler = ConversationHandler(
     entry_points=[
         MessageHandler(filters.Regex("^📢 Сделать рассылку$"), start_broadcast)
     ],
     states={
-        BROADCAST_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_broadcast_message)],
+        BROADCAST_MESSAGE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_broadcast_message)
+        ],
     },
     fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
 )
@@ -1538,30 +1548,33 @@ search_phone_conv = ConversationHandler(
     fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
 )
 
-
-# --- Сообщения от клиента к мастеру ---
+# ------------------ Клиент пишет мастеру ------------------
 client_to_admin_conv = ConversationHandler(
     entry_points=[
-        MessageHandler(filters.Regex("^✉️ Написать мастеру$"), start_client_to_admin_message)
+        MessageHandler(filters.Regex("^✉️ Написать мастеру$"), send_message_to_master)
     ],
     states={
-        CLIENT_TO_ADMIN_MESSAGE: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_client_to_admin_message)
+        CLIENT_MESSAGE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_client_message)
         ]
     },
     fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
 )
 
-# --- Админ → клиент (через reply) ---
+# ------------------ Админ пишет клиенту (инициатива) ------------------
 admin_to_client_conv = ConversationHandler(
     entry_points=[
-        CallbackQueryHandler(start_admin_to_client_message, pattern="^admin_reply_")
+        CallbackQueryHandler(start_admin_to_client_message_from_appointment, pattern="^admin_message_")
     ],
     states={
-        ADMIN_TO_CLIENT_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_to_client_message)]
+        ADMIN_TO_CLIENT_MESSAGE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_to_client_message)
+        ]
     },
     fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), admin_command)],
 )
+
+
 
 
 # ------------------ Основная функция ------------------
