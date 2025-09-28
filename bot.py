@@ -42,7 +42,7 @@ DB_PATH = "data/appointments.db"
     ADMIN_TO_CLIENT_MESSAGE,
     BROADCAST_MESSAGE,
     CONFIRM_CANCELLATION,
-) = range(9)
+) = range(10)
 
 RUSSIAN_WEEKDAYS = {0: "Пн", 1: "Вт", 2: "Ср", 3: "Чт", 4: "Пт", 5: "Сб", 6: "Вс"}
 
