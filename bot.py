@@ -6,6 +6,20 @@ import sqlite3
 import os
 import asyncio
 
+import os
+
+# Получаем переменные окружения
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+ADMIN_ID = int(os.environ.get('ADMIN_ID', '465630314'))
+
+# Проверяем что токен установлен
+if not BOT_TOKEN:
+    print("❌ ОШИБКА: BOT_TOKEN не найден!")
+    print("📝 Убедитесь что добавили переменную BOT_TOKEN в настройках Render")
+    exit(1)
+
+print(f"✅ Токен бота загружен, ID администратора: {ADMIN_ID}")
+
 # Стадии разговора
 SELECT_DATE, SELECT_TIME, ENTER_NAME, ENTER_PHONE, ADMIN_SEARCH_CLIENT, CLIENT_TO_ADMIN_MESSAGE, ADMIN_TO_CLIENT_MESSAGE, BROADCAST_MESSAGE, CONFIRM_CANCELLATION = range(9)
 
