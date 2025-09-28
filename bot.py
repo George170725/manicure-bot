@@ -1926,7 +1926,7 @@ async def handle_broadcast_message(update: Update, context: ContextTypes.DEFAULT
 def main():
     init_database()
 
-    application = Application.builder().token(config.BOT_TOKEN).build()
+    application = Application.builder().token(BOT_TOKEN).build()
 
     # Обработчик команды /start
     application.add_handler(CommandHandler("start", start_command))
