@@ -1549,17 +1549,16 @@ search_phone_conv = ConversationHandler(
 )
 
 # ------------------ Клиент пишет мастеру ------------------
-client_to_admin_conv = ConversationHandler(
-    entry_points=[
-        MessageHandler(filters.Regex("^✉️ Написать мастеру$"), send_message_to_master)
-    ],
-    states={
-        CLIENT_MESSAGE: [
-            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_client_message)
-        ]
-    },
-    fallbacks=[MessageHandler(filters.Regex("^❌ Отмена$"), start_command)],
-)
+async def send_message_to_master(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "✍️ Напишите ваше сообщение мастеру:",
+        reply_markup=ReplyKeyboardMarkup(
+            [[KeyboardButton("❌ Отмена")]],
+            resize_keyboard=True
+        ),
+    )
+    return CLIENT_MESSAGE
+
 
 # ------------------ Админ пишет клиенту (инициатива) ------------------
 admin_to_client_conv = ConversationHandler(
