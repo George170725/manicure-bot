@@ -1508,6 +1508,9 @@ def main():
     init_database()
     application = Application.builder().token(BOT_TOKEN).build()
 
+    # === Команды ===
+    application.add_handler(CommandHandler("start", start_command))
+
     # === Конверсейшены ===
     application.add_handler(booking_handler)
     application.add_handler(broadcast_handler)
