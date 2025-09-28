@@ -1292,10 +1292,30 @@ async def admin_cancel_appointment(query, context, appointment_id):
 
 
 async def start_admin_to_client_message_from_appointment(query, context, appointment):
-    context.user_data["admin_message_client_id"] = appointment[7]
-    context.user_data["admin_message_client_name"] = appointment[1]
-    await query.edit_message_text(f"💬 **ОТВЕТ КЛИЕНТУ**\n\n👤 **Клиент:** {appointment[1]}\n📞 **Телефон:** {appointment[2]}\n🆔 **Chat ID:** {appointment[7]}\n\nНапишите ваше сообщение:", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Отмена", callback_data=f"admin_view_{appointment[0]}")]]))
-    return
+    await query.answer()
+
+    # Сохраняем ID и имя клиента в user_data, чтобы потом использовать в сообщении
+    context.user_data["admin_message_client_id"] = appointment[7]   # chat_id клиента
+    context.user_data["admin_message_client_name"] = appointment[1] # имя клиента
+
+    message = (
+        f"💬 **НАПИСАТЬ КЛИЕНТУ**\n\n"
+        f"👤 **Клиент:** {appointment[1]}\n"
+        f"📞 **Телефон:** {appointment[2]}\n"
+        f"🆔 **Chat ID:** {appointment[7]}\n\n"
+        "Напишите ваше сообщение клиенту:"
+    )
+
+    # Показываем кнопку "Отмена" → вернёт в просмотр записи
+    await query.edit_message_text(
+        message,
+        reply_markup=InlineKeyboardMarkup(
+            [[InlineKeyboardButton("❌ Отмена", callback_data=f"admin_view_{appointment[0]}")]]
+        ),
+    )
+
+    return ADMIN_TO_CLIENT_MESSAGE
+
 
 
 async def show_client_messages_from_callback(query, context):
