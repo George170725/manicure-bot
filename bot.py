@@ -2033,19 +2033,14 @@ def main():
     application.add_handler(CallbackQueryHandler(handle_blocked_slots_callback, pattern="^(block_day|block_time|show_blocked)$"))
     application.add_handler(CallbackQueryHandler(remove_blocked_slot_callback, pattern="^remove_blocked_"))
 
-    # Планировщик задач временно отключен из-за совместимости с Python 3.13
-try:
-    job_queue = application.job_queue
-    # Ежедневное напоминание в 19:00
-    job_queue.run_daily(send_reminders, time=time(hour=19, minute=0, second=0))
-    # Проверка просроченных оплат каждую минуту
-    job_queue.run_repeating(check_expired_payments, interval=60, first=10)
-    print("✅ JobQueue запущен")
-except Exception as e:
-    print(f"⚠️ JobQueue отключен: {e}")
+    # Планировщик задач временно отключен
+# приложение = очередь_заданий.очередь_заданий
+# очередь_задач.выполнять_ежедневно(отправлено)
+# очередь_задач.запуск_повтора(проверка_повторной)
+print("⚠️ JobQueue отключен")
 
-    print("Бот запущен...")
-    application.run_polling()
+print("Бот запущен...")
+application.run_polling()
 
 if __name__ == '__main__':
     main()
