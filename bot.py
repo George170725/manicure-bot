@@ -1587,6 +1587,12 @@ def main():
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("admin", admin_command))
 
+    # в main() после init_database() и перед run_webhook()
+    job_queue = application.job_queue
+    job_queue.run_repeating(check_expired_payments, interval=60, first=10)
+    job_queue.run_daily(send_reminders, time=datetime.time(hour=10, minute=0))  # например, напоминание в 10:00
+
+
     # === Конверсейшены ===
     application.add_handler(booking_handler)
     application.add_handler(broadcast_handler)
