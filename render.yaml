@@ -6,5 +6,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python bot.py
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.6
+      - key: BOT_TOKEN
+        value: "8312388794:AAEBvJwzbz750q3AckSocpdGYSK9Gbv2eUI"
+      - key: ADMIN_ID
+        value: "465630314"
